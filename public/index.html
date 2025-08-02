@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jaipi Proxy</title>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    async function goProxy(event) {
+      event.preventDefault();
+      const url = document.getElementById('url').value;
+      if (!url) return alert("Enter a URL.");
+      const encoded = encodeURIComponent(url.startsWith('http') ? url : 'https://' + url);
+      const res = await fetch(`/api/proxy?url=${encoded}`);
+      const text = await res.text();
+      document.getElementById('output').innerHTML = text;
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+    }
+    [data-theme="dark"] {
+      --bg: #121212;
+      --fg: #f0f0f0;
+    }
+    body {
+      margin: 0;
+      padding: 2em;
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      transition: background 0.3s, color 0.3s;
+    }
+    input, button {
+      padding: 0.5em;
+      font-size: 1em;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2em;
+    }
+    #output {
+      margin-top: 2em;
+      padding: 1em;
+      background: rgba(0,0,0,0.05);
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      max-height: 70vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Jaipi</h1>
+    <button onclick="toggleTheme()">Toggle Dark/Light</button>
+  </div>
+  <form onsubmit="goProxy(event)">
+    <input id="url" type="text" placeholder="https://example.com" style="width: 70%;" />
+    <button type="submit">Go</button>
+  </form>
+  <div id="output"></div>
+</body>
+</html>
