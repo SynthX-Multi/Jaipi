@@ -1,28 +1,22 @@
 const fetch = require("node-fetch");
 const HttpsProxyAgent = require("https-proxy-agent");
 
-const proxyList = [
-  "http://134.209.29.120:3128",
-  "http://103.251.58.60:35101",
-  "http://185.199.231.45:8383"
-];
-
-function getRandomProxy() {
-  return proxyList[Math.floor(Math.random() * proxyList.length)];
-}
-
 module.exports = async (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).send("No URL provided.");
-
-  const proxy = getRandomProxy();
-  const agent = new HttpsProxyAgent(proxy);
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).send("Missing URL");
 
   try {
-    const response = await fetch(url, { agent });
-    const text = await response.text();
-    res.status(200).send(text);
+    const proxyList = await fetch("https://api.proxyscrape.com/?request=displayproxies&proxytype=http&timeout=5000")
+      .then(r => r.text());
+    const proxies = proxyList.split("\n").filter(Boolean);
+    const randomProxy = proxies[Math.floor(Math.random() * proxies.length)];
+    const agent = new HttpsProxyAgent("http://" + randomProxy);
+
+    const proxiedResponse = await fetch(targetUrl, { agent });
+    const body = await proxiedResponse.text();
+    res.setHeader("Content-Type", "text/html");
+    res.send(body);
   } catch (err) {
-    res.status(500).send("Error: " + err.message);
+    res.status(500).send("Proxy failed: " + err.message);
   }
 };
